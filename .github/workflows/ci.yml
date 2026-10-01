@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}/ledger-service
 
@@ -27,9 +31,6 @@ jobs:
 
       - name: Build and run tests
         run: mvn -B clean verify
-        # Tests spin up their own Postgres via Testcontainers, so no separate
-        # "services:" Postgres container is needed here -- Testcontainers
-        # talks to the Docker daemon that's already available on the runner.
 
       - name: Compute image tag
         id: meta
@@ -68,28 +69,39 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    # No cluster is wired up for this portfolio project (that would mean
-    # paying for managed k8s). This job only runs its deploy step if a
-    # KUBE_CONFIG secret has actually been configured in the repo; otherwise
-    # it's a documented no-op so the pipeline still shows the full path from
-    # commit to deploy without requiring a paid target to demonstrate it.
+
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for Kubernetes configuration
+        id: kube-check
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          if [ -n "$KUBE_CONFIG" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Helm
-        if: ${{ secrets.KUBE_CONFIG != '' }}
+        if: steps.kube-check.outputs.configured == 'true'
         uses: azure/setup-helm@v4
 
       - name: Deploy to cluster
-        if: ${{ secrets.KUBE_CONFIG != '' }}
+        if: steps.kube-check.outputs.configured == 'true'
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+          echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+
           helm upgrade --install ledger helm/ledger-service \
             --set image.repository=${{ env.IMAGE_NAME }} \
             --set image.tag=${{ needs.build-and-test.outputs.image_tag }} \
-            --set secrets.dbPassword=${{ secrets.DB_PASSWORD }}
+            --set secrets.dbPassword="$DB_PASSWORD"
 
       - name: No cluster configured
-        if: ${{ secrets.KUBE_CONFIG == '' }}
-        run: echo "Skipping deploy: no KUBE_CONFIG secret set. Add one (e.g. a free-tier kind/k3s cluster's kubeconfig) to enable this step."
+        if: steps.kube-check.outputs.configured == 'false'
+        run: echo "Skipping deploy: no KUBE_CONFIG secret set."
