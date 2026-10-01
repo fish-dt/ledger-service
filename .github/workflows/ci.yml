@@ -1,3 +1,4 @@
+```yaml
 name: CI
 
 on:
@@ -11,7 +12,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}/ledger-service
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   build-and-test:
@@ -39,7 +40,10 @@ jobs:
         run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }} .
+        run: |
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }} \
+            .
 
       - name: Log in to GHCR
         if: github.event_name == 'push'
@@ -53,7 +57,11 @@ jobs:
         if: github.event_name == 'push'
         run: |
           docker push ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
-          docker tag ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }} ${{ env.IMAGE_NAME }}:latest
+
+          docker tag \
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }} \
+            ${{ env.IMAGE_NAME }}:latest
+
           docker push ${{ env.IMAGE_NAME }}:latest
 
       - name: Set up Helm
@@ -67,3 +75,4 @@ jobs:
           helm template ledger helm/ledger-service \
             --set image.repository=${{ env.IMAGE_NAME }} \
             --set image.tag=${{ steps.meta.outputs.tag }}
+```
