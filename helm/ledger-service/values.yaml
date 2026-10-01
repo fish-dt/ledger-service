@@ -1,0 +1,78 @@
+# Default values for ledger-service.
+
+replicaCount: 2
+
+image:
+  repository: ledger-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# Rolling update, not recreate: old pods keep serving traffic while new ones
+# come up. maxUnavailable: 0 means capacity never drops during a rollout --
+# the trade-off is a rollout needs one extra pod of headroom (maxSurge: 1)
+# for a moment, which is exactly what resources.requests sizes for.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Deliberately modest: this demonstrates the pattern, not production scale.
+resources:
+  requests:
+    cpu: 250m
+    memory: 384Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Backed by Spring Boot Actuator's health groups (management.health.*state.enabled
+# in application.yml). Liveness only checks "is the JVM alive" -- readiness
+# additionally checks DB/Redis connectivity, so a pod that can't reach
+# Postgres is taken out of the Service's endpoints without being restarted.
+probes:
+  liveness:
+    path: /actuator/health/liveness
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /actuator/health/readiness
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    failureThreshold: 3
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+# Non-secret runtime config. DB_PASSWORD/etc live in the Secret instead.
+config:
+  dbHost: postgres
+  dbPort: "5432"
+  dbName: ledger
+  dbUser: ledger
+  redisHost: redis
+  redisPort: "6379"
+  serverPort: "8080"
+  # Set this to your actual deployed frontend origin -- localhost won't
+  # resolve from inside the cluster.
+  corsAllowedOrigins: "http://localhost:3000"
+
+# Intentionally no default here -- secret.yaml's required() check fails
+# the install if this isn't supplied via --set or a gitignored
+# values-secret.yaml, rather than deploying with a committed password.
+#   helm install ledger helm/ledger-service --set secrets.dbPassword=$DB_PASSWORD
+secrets:
+  dbPassword: ""
+
+serviceAccount:
+  create: true
+  name: ""

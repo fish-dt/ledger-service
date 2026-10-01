@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Satoshi and Editorial New are Fontshare fonts, free for commercial use but
+  not distributable through this repo or loadable from a CDN we control.
+  Download them yourself (fontshare.com/fonts/satoshi and
+  fontshare.com/fonts/editorial-new) and drop the .woff2 files here:
+
+    public/fonts/Satoshi-Variable.woff2
+    public/fonts/EditorialNew-Regular.woff2
+
+  Until then the fallback stacks in tailwind.config.js (system-ui / Georgia)
+  render the whole UI correctly -- nothing breaks, it just looks like the
+  system default rather than the intended type until you add the files.
+*/
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/ClashGrotesk-Variable.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Editorial New";
+  src: url("/fonts/EditorsNote-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@layer base {
+  * {
+    @apply border-hairline;
+  }
+
+  body {
+    @apply bg-base text-ink font-sans antialiased;
+  }
+
+  /* Visible keyboard focus everywhere -- never suppressed. */
+  :focus-visible {
+    outline: 2px solid theme("colors.teal.DEFAULT");
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: theme("colors.teal.dim");
+    color: theme("colors.ink");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

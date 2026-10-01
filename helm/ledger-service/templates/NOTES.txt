@@ -1,0 +1,11 @@
+ledger-service is deployed.
+
+Check rollout status:
+  kubectl rollout status deployment/{{ include "ledger-service.fullname" . }}
+
+Port-forward to try it locally:
+  kubectl port-forward svc/{{ include "ledger-service.fullname" . }} 8080:{{ .Values.service.port }}
+  curl localhost:8080/actuator/health
+
+Watch the HPA:
+  kubectl get hpa {{ include "ledger-service.fullname" . }} -w
