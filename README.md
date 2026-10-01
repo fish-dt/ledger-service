@@ -28,23 +28,9 @@ the live API.
 
 ## Architecture
 
-```
-┌──────────────────┐        REST (JSON)        ┌───────────────────────┐
-│  Next.js dashboard │ ───────────────────────▶ │   Spring Boot API      │
-│  (localhost:3000) │ ◀─────────────────────── │   (localhost:8080)     │
-└──────────────────┘        polls every 5s      └───────────┬───────────┘
-                                                              │
-                                     ┌────────────────────────┼─────────────────────┐
-                                     │                        │                     │
-                              ┌──────▼──────┐         ┌───────▼──────┐     ┌────────▼───────┐
-                              │  PostgreSQL  │         │    Redis      │     │  Reconciliation │
-                              │  (ledger of  │         │ (balance      │     │  worker         │
-                              │  record, DB- │         │  cache, pub/  │     │  (SKIP LOCKED   │
-                              │  enforced    │         │  sub for live │     │  queue, polls   │
-                              │  balance     │         │  mismatch     │     │  every 2s)      │
-                              │  invariant)  │         │  events)      │     │                 │
-                              └──────────────┘         └───────────────┘     └─────────────────┘
-```
+<p align="center">
+  <img src="docs/architecture.png" alt="Ledger Service System Architecture" width="100%">
+</p>
 
 ## Quickstart — run the whole thing end to end
 
