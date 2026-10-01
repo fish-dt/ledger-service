@@ -1,4 +1,3 @@
-```yaml
 name: CI
 
 on:
@@ -75,4 +74,3 @@ jobs:
           helm template ledger helm/ledger-service \
             --set image.repository=${{ env.IMAGE_NAME }} \
             --set image.tag=${{ steps.meta.outputs.tag }}
-```
