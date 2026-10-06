@@ -1,28 +1,21 @@
+import Link from "next/link";
 import type { ReconciliationJob } from "@/lib/api";
 import { formatRelativeTime } from "@/lib/format";
+import { JobStatusBadge } from "./ui/StatusBadge";
+import { EmptyState } from "./ui/EmptyState";
 
-const statusStyle: Record<ReconciliationJob["status"], string> = {
-  DONE: "bg-ok-dim text-ok",
-  PROCESSING: "bg-panel-raised text-ink-muted",
-  PENDING: "bg-panel-raised text-ink-muted",
-  FAILED: "bg-brand-dim text-brand",
-};
-
-export function JobsTable({ jobs }: { jobs: ReconciliationJob[] }) {
+export function JobsTable({ jobs, title = "Recent reconciliation jobs" }: { jobs: ReconciliationJob[]; title?: string }) {
   return (
     <div className="rounded border border-hairline bg-panel">
       <div className="border-b border-hairline px-5 py-4">
-        <h2 className="text-base font-medium text-ink">Recent reconciliation jobs</h2>
+        <h2 className="text-base font-medium text-ink">{title}</h2>
       </div>
 
       {jobs.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-ink-muted">
-          No reconciliation jobs yet. Upload a payout file above, or run{" "}
-          <code className="rounded bg-panel-raised px-1.5 py-0.5 text-xs text-ink">
-            scripts/generate_payout_csv.py
-          </code>{" "}
-          to seed some.
-        </p>
+        <EmptyState
+          title="No reconciliation jobs yet"
+          description="Upload a payout file to get started, or run scripts/generate_payout_csv.py to seed some."
+        />
       ) : (
         <table className="w-full text-sm">
           <thead>
@@ -36,8 +29,12 @@ export function JobsTable({ jobs }: { jobs: ReconciliationJob[] }) {
           </thead>
           <tbody>
             {jobs.map((job) => (
-              <tr key={job.id} className="border-b border-hairline last:border-0">
-                <td className="px-5 py-3 text-ink">{job.sourceFile}</td>
+              <tr key={job.id} className="border-b border-hairline last:border-0 hover:bg-panel-raised">
+                <td className="px-5 py-3">
+                  <Link href={`/reconciliation/${job.id}`} className="text-ink hover:text-brand">
+                    {job.sourceFile}
+                  </Link>
+                </td>
                 <td className="px-5 py-3 text-ink-muted">{job.rowCount || "—"}</td>
                 <td className="px-5 py-3">
                   {job.mismatches.length > 0 ? (
@@ -47,9 +44,7 @@ export function JobsTable({ jobs }: { jobs: ReconciliationJob[] }) {
                   )}
                 </td>
                 <td className="px-5 py-3">
-                  <span className={`rounded px-2 py-0.5 text-xs ${statusStyle[job.status]}`}>
-                    {job.status.charAt(0) + job.status.slice(1).toLowerCase()}
-                  </span>
+                  <JobStatusBadge status={job.status} />
                 </td>
                 <td className="px-5 py-3 text-ink-faint">{formatRelativeTime(job.createdAt)}</td>
               </tr>

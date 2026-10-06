@@ -27,11 +27,9 @@ the live API.
 4. You watch it happen on a dashboard, or find out via API.
 
 ## Architecture
-
 <p align="center">
   <img src="docs/architecture.png" alt="Ledger Service System Architecture" width="100%">
 </p>
-
 ## Quickstart — run the whole thing end to end
 
 This takes about 10 minutes and everything is free — no cloud account, no
@@ -184,7 +182,7 @@ Helm chart. The actual `helm upgrade --install` deploy step only runs if a
 the pipeline demonstrates the full path without requiring a cluster running
 24/7.
 
-## Design decisions 
+## Design decisions worth stating out loud in an interview
 
 - **Outbox pattern instead of publish-after-commit**: a direct publish
   after commit can fail and silently drop an event. The trade-off is added

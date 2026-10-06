@@ -65,6 +65,15 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Exposes /v3/api-docs (OpenAPI JSON) and /swagger-ui.html with
+             zero extra code - lets the frontend generate a typed client
+             with openapi-typescript instead of hand-maintained TS types. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

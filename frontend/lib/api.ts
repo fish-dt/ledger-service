@@ -1,4 +1,12 @@
+import { demo } from "./demo-data";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
+// Set on the public deploy when there's no live backend behind it (see
+// README "Demo mode"). Checked at the top of every exported function below
+// rather than in a single branch point, so each function's real-vs-demo
+// behavior stays easy to read in place.
+export const isDemoMode = () => process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export type Account = {
   id: number;
@@ -31,7 +39,11 @@ export type ReconciliationJob = {
 };
 
 class ApiError extends Error {
-  constructor(message: string, public status?: number) {
+  // serverMessage is the backend's own GlobalExceptionHandler "error" field,
+  // when present -- that's the human-readable message worth showing someone
+  // on the /post "try to break it" page, as opposed to the generic HTTP
+  // status wrapper.
+  constructor(message: string, public status?: number, public serverMessage?: string) {
     super(message);
   }
 }
@@ -46,21 +58,36 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new ApiError(`${res.status} ${res.statusText}: ${body}`, res.status);
+    const bodyText = await res.text().catch(() => "");
+    let serverMessage: string | undefined;
+    try {
+      const parsed = JSON.parse(bodyText);
+      if (typeof parsed.error === "string") serverMessage = parsed.error;
+    } catch {
+      // not JSON -- leave serverMessage undefined, callers fall back to the raw text
+    }
+    throw new ApiError(
+      serverMessage ?? `${res.status} ${res.statusText}: ${bodyText}`,
+      res.status,
+      serverMessage
+    );
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
 export function getAccounts(): Promise<Account[]> {
+  if (isDemoMode()) return demo.getAccounts();
   return request<Account[]>("/api/accounts");
 }
 
 export function getReconciliationJobs(): Promise<ReconciliationJob[]> {
+  if (isDemoMode()) return demo.getReconciliationJobs();
   return request<ReconciliationJob[]>("/api/reconciliation/jobs");
 }
 
 export async function uploadPayoutFile(file: File): Promise<ReconciliationJob> {
+  if (isDemoMode()) return demo.uploadPayoutFile(file);
   const formData = new FormData();
   formData.append("file", file);
   return request<ReconciliationJob>("/api/reconciliation/jobs", {
@@ -68,5 +95,54 @@ export async function uploadPayoutFile(file: File): Promise<ReconciliationJob> {
     body: formData,
   });
 }
+
+export function getReconciliationJob(id: number): Promise<ReconciliationJob> {
+  if (isDemoMode()) return demo.getReconciliationJob(id);
+  return request<ReconciliationJob>(`/api/reconciliation/jobs/${id}`);
+}
+
+export function getTransaction(id: string): Promise<TransactionDetail> {
+  if (isDemoMode()) return demo.getTransaction(id);
+  return request<TransactionDetail>(`/api/transactions/${id}`);
+}
+
+export async function postTransaction(body: PostTransactionBody): Promise<TransactionDetail> {
+  if (isDemoMode()) {
+    try {
+      return await demo.postTransaction(body);
+    } catch (err) {
+      throw new ApiError(err instanceof Error ? err.message : "Failed to post transaction");
+    }
+  }
+  return request<TransactionDetail>("/api/transactions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateMismatch(id: number, resolved: boolean): Promise<MismatchFlag> {
+  if (isDemoMode()) return demo.updateMismatch(id, resolved);
+  return request<MismatchFlag>(`/api/reconciliation/mismatches/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ resolved }),
+  });
+}
+
+export type TransactionDetail = {
+  id: string;
+  idempotencyKey: string;
+  description: string | null;
+  createdAt: string;
+  entries: { accountId: number; amountCents: number }[];
+  deduped: boolean;
+};
+
+export type PostTransactionBody = {
+  idempotencyKey: string;
+  description?: string;
+  entries: { accountId: number; amountCents: number }[];
+};
 
 export { ApiError };
