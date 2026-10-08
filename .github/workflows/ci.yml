@@ -4,9 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
-
-env:
+    branches: [mpermisenv:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
@@ -123,6 +121,14 @@ jobs:
       - name: Verify deployment
         run: |
           kubectl rollout status \
+            deployment/ledger-service \
+            -n ledger \
+            --timeout=5m
+  kubectl rollout status \
+            deployment/ledger-service \
+            -n ledger \
+            --timeout=5m
+    kubectl rollout status \
             deployment/ledger-service \
             -n ledger \
             --timeout=5m

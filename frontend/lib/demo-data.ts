@@ -4,6 +4,8 @@ import type {
   ReconciliationJob,
   TransactionDetail,
   PostTransactionBody,
+  AccountEntry,
+  OutboxEvent,
 } from "./api";
 
 // In-memory only -- resets on page reload. This exists so a public deploy
@@ -191,6 +193,35 @@ export const demo = {
     }));
     if (!updated) return Promise.reject(new Error(`Mismatch ${id} not found`));
     return delay(updated);
+  },
+
+  getAccountEntries: (accountId: number): Promise<AccountEntry[]> => {
+    const entries: AccountEntry[] = [];
+    let id = 1000;
+    for (const txn of transactions.values()) {
+      const entry = txn.entries.find((e) => e.accountId === accountId);
+      if (entry) {
+        entries.push({
+          id: id++,
+          amountCents: entry.amountCents,
+          createdAt: txn.createdAt,
+          transactionId: txn.id,
+        });
+      }
+    }
+    return delay(entries.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  },
+
+  getOutboxEvents: (): Promise<OutboxEvent[]> => {
+    const events: OutboxEvent[] = Array.from(transactions.values()).map((txn, i) => ({
+      id: i + 1,
+      transactionId: txn.id,
+      eventType: "LEDGER_TRANSACTION_POSTED",
+      published: true,
+      createdAt: txn.createdAt,
+      publishedAt: txn.createdAt,
+    }));
+    return delay(events.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   },
 
   uploadPayoutFile: (file: File): Promise<ReconciliationJob> => {

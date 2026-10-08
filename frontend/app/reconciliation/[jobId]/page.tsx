@@ -239,14 +239,20 @@ export default function MismatchTriagePage({ params }: { params: { jobId: string
                     {table.getHeaderGroups().map((hg) => (
                       <tr key={hg.id} className="border-b border-hairline text-left text-ink-muted">
                         {hg.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            onClick={header.column.getToggleSortingHandler()}
-                            className="px-4 py-2.5 font-normal"
-                            style={{ cursor: header.column.getCanSort() ? "pointer" : "default" }}
-                          >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                            {{ asc: " ↑", desc: " ↓" }[header.column.getIsSorted() as string] ?? ""}
+                          <th key={header.id} className="px-4 py-2.5 font-normal">
+                            {header.column.getCanSort() ? (
+                              <button
+                                type="button"
+                                onClick={header.column.getToggleSortingHandler()}
+                                className="flex items-center gap-1 hover:text-ink"
+                                aria-label={`Sort by ${String(flexRender(header.column.columnDef.header, header.getContext()))}`}
+                              >
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                {{ asc: "↑", desc: "↓" }[header.column.getIsSorted() as string] ?? ""}
+                              </button>
+                            ) : (
+                              flexRender(header.column.columnDef.header, header.getContext())
+                            )}
                           </th>
                         ))}
                       </tr>

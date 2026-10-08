@@ -1,1 +1,10 @@
-Font files go here (see README.md in this repo)
+Place these two files here (not committed - binary font files don't belong
+in git history for a portfolio repo; add them locally or via your deploy
+pipeline's asset step):
+
+  ClashGrotesk-Variable.woff2
+  EditorsNote-Regular.otf
+
+Referenced by name in app/globals.css. Without them, the fallback stacks
+in tailwind.config.js (bundled Manrope/Fraunces, then system fonts) render
+correctly -- nothing breaks, it just isn't the intended type.

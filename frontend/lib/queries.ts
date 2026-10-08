@@ -4,6 +4,8 @@ import {
   getReconciliationJobs,
   getReconciliationJob,
   getTransaction,
+  getAccountEntries,
+  getOutboxEvents,
   postTransaction,
   updateMismatch,
   uploadPayoutFile,
@@ -48,6 +50,22 @@ export function useTransaction(id: string) {
     queryKey: ["transaction", id],
     queryFn: () => getTransaction(id),
     enabled: Boolean(id),
+  });
+}
+
+export function useAccountEntries(accountId: number) {
+  return useQuery({
+    queryKey: ["account-entries", accountId],
+    queryFn: () => getAccountEntries(accountId),
+    enabled: Number.isFinite(accountId),
+  });
+}
+
+export function useOutboxEvents() {
+  return useQuery({
+    queryKey: ["outbox-events"],
+    queryFn: getOutboxEvents,
+    refetchInterval: POLL_INTERVAL_MS,
   });
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAccounts } from "@/lib/queries";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CardSkeleton } from "@/components/ui/Skeleton";
@@ -30,20 +31,19 @@ export default function AccountsPage() {
           {accountsQuery.isLoading
             ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
             : accounts.map((a) => (
-                <div key={a.id} className="rounded border border-hairline bg-panel p-5">
+                <Link
+                  key={a.id}
+                  href={`/accounts/${a.id}`}
+                  className="rounded border border-hairline bg-panel p-5 transition-colors hover:border-brand"
+                >
                   <p className="text-sm text-ink-muted">
                     {a.name} · #{a.id}
                   </p>
                   <p className="mt-2 font-display text-2xl text-ink">{formatCents(a.balanceCents)}</p>
                   <p className="mt-1 text-xs text-ink-faint">{typeLabel[a.accountType]}</p>
-                </div>
+                </Link>
               ))}
         </div>
-
-        <p className="mt-6 text-sm text-ink-faint">
-          Per-account entry history and a balance-over-time chart are planned for the next
-          iteration — the backend endpoint for that doesn&apos;t exist yet.
-        </p>
       </div>
     </>
   );

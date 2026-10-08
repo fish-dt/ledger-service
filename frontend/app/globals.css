@@ -3,18 +3,25 @@
 @tailwind utilities;
 
 /*
-  Satoshi and Editorial New are Fontshare fonts, free for commercial use but
-  not distributable through this repo or loadable from a CDN we control.
-  Download them yourself (fontshare.com/fonts/satoshi and
-  fontshare.com/fonts/editorial-new) and drop the .woff2 files here:
+  FONTS
+  -----
+  "Satoshi" and "Editorial New" are the logical family names used
+  throughout tailwind.config.js (font-sans / font-display). They're backed
+  by real local files below -- Clash Grotesk and Editor's Note -- rather
+  than the literal Fontshare "Satoshi"/"Editorial New" files, which aren't
+  redistributable through this repo. Keeping the logical names stable means
+  swapping the backing files again later (or dropping in the literal
+  Fontshare fonts) never requires touching a component.
 
-    public/fonts/Satoshi-Variable.woff2
-    public/fonts/EditorialNew-Regular.woff2
-
-  Until then the fallback stacks in tailwind.config.js (system-ui / Georgia)
-  render the whole UI correctly -- nothing breaks, it just looks like the
-  system default rather than the intended type until you add the files.
+  @import "@fontsource-variable/manrope" / "fraunces" below stays in as a
+  safety net: if these local files are ever missing from a deploy (e.g. a
+  fresh clone without the binary assets committed), the stack in
+  tailwind.config.js falls through to those bundled open-source fonts
+  instead of the browser's bare system default.
 */
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/fraunces";
+
 @font-face {
   font-family: "Satoshi";
   src: url("/fonts/ClashGrotesk-Variable.woff2") format("woff2");
@@ -40,12 +47,12 @@
 
   /* Visible keyboard focus everywhere -- never suppressed. */
   :focus-visible {
-    outline: 2px solid theme("colors.teal.DEFAULT");
+    outline: 2px solid theme("colors.brand.DEFAULT");
     outline-offset: 2px;
   }
 
   ::selection {
-    background: theme("colors.teal.dim");
+    background: theme("colors.brand.dim");
     color: theme("colors.ink");
   }
 }

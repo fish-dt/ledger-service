@@ -130,6 +130,40 @@ export function updateMismatch(id: number, resolved: boolean): Promise<MismatchF
   });
 }
 
+export type AccountEntry = {
+  id: number;
+  amountCents: number;
+  createdAt: string;
+  transactionId: string;
+};
+
+export function getAccountEntries(accountId: number): Promise<AccountEntry[]> {
+  if (isDemoMode()) return demo.getAccountEntries(accountId);
+  return request<AccountEntry[]>(`/api/accounts/${accountId}/entries`);
+}
+
+export type OutboxEvent = {
+  id: number;
+  transactionId: string;
+  eventType: string;
+  published: boolean;
+  createdAt: string;
+  publishedAt: string | null;
+};
+
+export function getOutboxEvents(): Promise<OutboxEvent[]> {
+  if (isDemoMode()) return demo.getOutboxEvents();
+  return request<OutboxEvent[]>("/api/events/outbox");
+}
+
+// The SSE endpoint itself isn't proxied through demo mode's request() --
+// EventSource makes its own connection, so the /events page checks
+// isDemoMode() directly and skips connecting at all, showing simulated
+// events instead. See components/EventFeed.tsx.
+export function eventsStreamUrl(): string {
+  return `${API_BASE}/api/events/stream`;
+}
+
 export type TransactionDetail = {
   id: string;
   idempotencyKey: string;

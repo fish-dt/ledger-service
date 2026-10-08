@@ -17,4 +17,9 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> 
             "ORDER BY created_at ASC LIMIT :limit FOR UPDATE SKIP LOCKED",
             nativeQuery = true)
     List<OutboxEvent> lockNextUnpublished(int limit);
+
+    // Powers the /events outbox visualizer -- recent rows regardless of
+    // published state, so the UI can actually show the PENDING -> PUBLISHED
+    // transition, not just what's still waiting.
+    List<OutboxEvent> findTop50ByOrderByCreatedAtDesc();
 }

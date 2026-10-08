@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconLedger, IconReconcile, IconAccounts, IconFlag, IconSettings } from "./icons";
+import { IconLedger, IconReconcile, IconAccounts, IconFlag, IconSettings, IconClock } from "./icons";
 
 const items = [
   { href: "/", icon: IconLedger, label: "Overview" },
   { href: "/reconciliation", icon: IconReconcile, label: "Reconciliation" },
   { href: "/accounts", icon: IconAccounts, label: "Accounts" },
   { href: "/post", icon: IconFlag, label: "Post a transaction" },
+  { href: "/events", icon: IconClock, label: "Live events" },
 ];
 
 export function Sidebar() {
