@@ -1,7 +1,7 @@
 # Ledger — Payment Reconciliation Service
 
 <!-- Replace YOUR_USERNAME/ledger-service with the actual GitHub path once pushed -->
-[![CI](https://github.com/YOUR_USERNAME/ledger-service/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/ledger-service/actions/workflows/ci.yml)
+[![CI](https://github.com/fish-dt/ledger-service/actions/workflows/ci.yml/badge.svg)](https://github.com/fish-dt/ledger-service/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A double-entry ledger that catches the moment your internal records and your
